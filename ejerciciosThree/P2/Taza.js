@@ -1,10 +1,26 @@
 import * as THREE from '../libs/three.module.js'
 import { CSG } from '../libs/CSG-v2.js'
  
-class MyFigure extends THREE.Object3D {
+class Taza extends THREE.Object3D {
     constructor() {
         super()
         
+        this.createTaza()
+    }
+
+    setPosition(x, y, z){
+        this.taza.position.x = x
+        this.taza.position.y = y
+        this.taza.position.z = z
+    }
+
+    setScale(x, y, z){
+        this.taza.scale.x = x
+        this.taza.scale.y = y
+        this.taza.scale.z = z
+    }
+
+    createTaza(){
         var material = new THREE.MeshNormalMaterial()
 
         var cilExt = new THREE.CylinderGeometry(5,5,10,24,1)
@@ -22,17 +38,11 @@ class MyFigure extends THREE.Object3D {
         csg.union([cilExtMesh, toroMesh])
         csg.subtract([cilIntMesh])
 
-        var resultadoMesh = new THREE.Mesh()
+        this.taza = new THREE.Mesh()
 
-        resultadoMesh = csg.toMesh()
+        this.taza = csg.toMesh()
         
-        this.add(resultadoMesh)
-    }
-
-    setPosition(x, y, z){
-        this.trofeo.position.x = x
-        this.trofeo.position.y = y
-        this.trofeo.position.z = z
+        this.add(this.taza)
     }
     
     update () {
@@ -40,4 +50,4 @@ class MyFigure extends THREE.Object3D {
     }
 }
 
-export { MyFigure }
+export { Taza }

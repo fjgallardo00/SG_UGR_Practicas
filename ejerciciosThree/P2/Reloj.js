@@ -63,7 +63,7 @@ class Reloj extends THREE.Object3D {
         carrillonPaloGeom.rotateZ(-Math.PI/2)
         var carrillonPalo = new THREE.Mesh (carrillonPaloGeom, this.materialamarillo)
         
-        var csg = new CSG();
+        var csg = new CSG()
 
         csg.union([carrillonPalo, carrillonMedalla])
         
@@ -111,21 +111,25 @@ class Reloj extends THREE.Object3D {
         // Después, la rotación en Y
         // Luego, la rotación en X
         // Y por último la traslación
+
+        var delta = this.reloj.getDelta()*1.5
     
-        //this.manecilla.rotation.y -= this.rotacion * this.reloj.getDelta() / 4
+        //this.manecilla.rotation.y -= this.rotacion * delta / 4
 
         if(this.rotateCarrion == 1){
-            this.carrillon.rotation.y += this.rotacion * this.reloj.getDelta()
+            this.carrillon.rotation.y += this.rotacion * delta
         }
         else if (this.rotateCarrion == -1){
-            this.carrillon.rotation.y -= this.rotacion * this.reloj.getDelta()
+            this.carrillon.rotation.y -= this.rotacion * delta
         }
 
         if(this.carrillon.rotation.y > Math.PI/9){
             this.rotateCarrion = -1
+            this.manecilla.rotation.y -= this.rotacion/5
         }
         else if(this.carrillon.rotation.y < -Math.PI/9){
             this.rotateCarrion = 1
+            this.manecilla.rotation.y -= this.rotacion/5
         }
 
 

@@ -11,27 +11,34 @@ Para las dimensiones tener en cuenta lo que considera cada uno. Por ejemplo, si 
 ## Técnicas
 
 Hay que tener en cuenta el uso de todas la técnicas para subir nota:
-- **Revolución**: Pieza ajedrez "reconvertida" en trofeo
+- **Revolución**: Trofeo
 - **Extrusión**: 
 - **Barrido**:
-- **CSG**: Pedestal
+- **CSG**: Pedestal, Trofeo, Habitación
 - **Objetos OBJ**: Mesa
-- **Animaciones**: Se supone que el reloj de la pared y la puerta. El cuadro también lo debe de tener para abrirse
-- **Modelo jerárquico**: Reloj y cuadro
+- **Animaciones**: Reloj y Puerta
+- **Modelo jerárquico**: Reloj
 - **Etc**
 
 ## Tareas por hacer
 
-- Probar las animaciones y empezar a comprobar si las dimensiones son correctas
-- Añadir el trofeo en la sala oculta y hacer la sala
 - Al seleccionar un objeto y moverlo, se va por ahí. Se debe a que se mueve al punto final del raycasting en el suelo, por lo que el objeto se va por ahí. Hay que cambiar esa cosa
+- Añadir 3 cuadros. Uno encima de la mesa, otro dentro de la sala pequeña y otro en la pared vacía de al lado de la puerta de salida
+- Añadir puzles
 
 ## Ocurrencias
 
-- Para abrir la puerta al terminar el scape room habría que pinchar en el pomo de la puerta con la función **onClick** del ratón y usar una animación que tarde 2 segundos en abrirse con las animaciones de tween de ese con una rotación sobre un eje de la puerta. Buscar para la puerta una textura de puerta
-- Para el cuadro con cosas ocultas detrás, se puede usar de textura el mapa del mundo
+- Para el cuadro con cosas ocultas detrás, se puede usar de textura el mapa del mundo. Poner varios cuadros
 - Poner en uno de los pedestales una figura imitando a un jarrón de cristal con la opacity muy leve para simular la transparencia, y en el otro una figura hecha por extrusión/barrido estrambotica
+- Poner un puzle de luces que tengas que iluminar todas las luces
+- Poner una caja invisible en la parte de arriba del trofeo para poder moverlo con mayor 
+- Al resolver los puzles, hacer una "animacion" con las cámaras para enseñar que la luz de la puerta se ha puesto verde
+- Poner trofeo encima de la mesa
 
 ## Cosas a tener en cuenta
 
 - Para que los objetos no atraviesen el suelo es crear la geometría y subir el objeto con y = h/2 ANTES de crear el Mesh para tener su referencia en y = 0 
+
+## Solucion
+
+Primero se hace el puzle de las luces, eso hará que se encienda el busto para poner el trofeo encima. Al hacerlo, se abrirá la puerta para entrar en la sala pequeña. Dentro se introduce la clave numérica que estará apuntada en el papel que está encima de la mesa. Con eso, se desbloqueará la puerta de salida.

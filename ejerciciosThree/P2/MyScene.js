@@ -10,11 +10,13 @@ import * as KeyCode from '../libs/keycode.esm.js'
 
 // Clases de mi proyecto
 
-//import { MyFigure } from './MyFigure.js'
 import { Pedestal } from './pedestal.js'
 import { Raycaster } from '../libs/three.module.js'
 import { Mesa } from './Mesa.js'
 import { Reloj } from './Reloj.js'
+import { Trofeo } from './Trofeo.js'
+import { Documento } from './documento.js'
+import { Taza } from './Taza.js'
 
  
 /// La clase fachada del modelo
@@ -30,15 +32,6 @@ class MyScene extends THREE.Scene {
         
         // Lo primero, crear el visualizador, pasándole el lienzo sobre el que realizar los renderizados.
         this.renderer = this.createRenderer(myCanvas);
-
-        this.pickableObjects = []
-        this.colisionesObjects = []
-        this.mouseDown = false
-        this.mouse = new THREE.Vector2()
-        
-        this.material = new THREE.MeshNormalMaterial()
-        this.materialamarillo = new THREE.MeshPhongMaterial({color: 0xc8c32b })
-        
         
         // Se crea la interfaz gráfica de usuario
         this.gui = this.createGUI ();
@@ -47,6 +40,25 @@ class MyScene extends THREE.Scene {
         
         // Todo elemento que se desee sea tenido en cuenta en el renderizado de la escena debe pertenecer a esta. Bien como hijo de la escena (this en esta clase) o como hijo de un elemento que ya esté en la escena.
         // Tras crear cada elemento se añadirá a la escena con   this.add(variable)
+        
+        // Y unos ejes. Imprescindibles para orientarnos sobre dónde están las cosas
+        this.axis = new THREE.AxesHelper (5)
+        this.add (this.axis)
+
+        this.pickableObjects = []
+        this.colisionesObjects = []
+        this.mouseDown = false
+        this.mouse = new THREE.Vector2()
+        
+        this.material = new THREE.MeshNormalMaterial()
+        this.materialamarillo = new THREE.MeshPhongMaterial({color: 0xc8c32b })
+
+        this.clock = new THREE.Clock();
+        this.rotacion = (Math.PI*2/12); //rotacion para cada hora
+        this.puertaDesbloqueadaExterna = true
+        this.puertaDesbloqueadaInterna = true
+        this.rotationPuertaExterna = false
+        
         this.createLights ();
         
         // Tendremos una cámara con un control de movimiento con el ratón
@@ -57,38 +69,32 @@ class MyScene extends THREE.Scene {
 
         this.createRoom()
         this.createDoors()
-        
-        // Y unos ejes. Imprescindibles para orientarnos sobre dónde están las cosas
-        this.axis = new THREE.AxesHelper (5);
-        this.add (this.axis);
-        
-        
-        // Por último creamos el modelo.
-        // El modelo puede incluir su parte de la interfaz gráfica de usuario. Le pasamos la referencia a 
-        // la gui y el texto bajo el que se agruparán los controles de la interfaz que añada el modelo.
-        /*
-        */
-        var caja = new THREE.BoxGeometry(4, 8, 4, 2, 1)
-        caja.translate(0,4,0)
-        this.cajaMesh = new THREE.Mesh(caja, this.material)
+        this.createObjects()
+    }
 
-        this.add(this.cajaMesh)
-        this.pickableObjects.push(this.cajaMesh)
-
-        //this.cajaMesh.position.y = 10
-        this.cajaMesh.position.x = -4
-        this.cajaMesh.position.z = 24.3
-
-        this.rotationPuerta = false
-
+    createObjects(){
         this.reloj = new Reloj()
         this.reloj.setPosition(99.7, 22, 30)
         this.add(this.reloj)
+        
+        this.trofeo = new Trofeo()
+        this.add(this.trofeo)
+        //this.pickableObjects.push(this.trofeo)
+        this.trofeo.setPosition(-90,0,90)
+        //this.trofeo.position.x = -4
+        //this.trofeo.position.z = 24.3
+
+        this.taza = new Taza()
+        this.taza.setPosition(85,11.5,85)
+        this.taza.setScale(0.2,0.2,0.2)
+        this.add(this.taza)
 
         this.mesa = new Mesa()
+        
         this.mesa.scale.x = 0.15
         this.mesa.scale.y = 0.1
         this.mesa.scale.z = 0.15
+        
         this.mesa.position.x = 87
         this.mesa.position.z = 80
         this.mesa.position.y = 5
@@ -99,16 +105,39 @@ class MyScene extends THREE.Scene {
         this.pedestal2 = new Pedestal()
         this.pedestal3 = new Pedestal()
 
+        this.pedestal4 = new Pedestal()
+        this.pedestal5 = new Pedestal()
+
         this.pedestal1.setPosition(0, 0, 95)
         this.pedestal2.setPosition(-20, 0, 95)
         this.pedestal3.setPosition(-40, 0, 95)
 
+        this.pedestal4.setPosition(-95, 0, -60)
+        this.pedestal5.setPosition(-95, 0, -40)
+
         this.add (this.pedestal1)
         this.add (this.pedestal2)
         this.add (this.pedestal3)
+        this.add (this.pedestal4)
+        this.add (this.pedestal5)
 
-        this.clock = new THREE.Clock();
-        this.rotacion = (Math.PI*2/12); //rotacion para cada hora
+        this.colisionesObjects.push(this.pedestal1)
+
+        this.documento = new Documento()
+        this.documento.setPosition(80,10.25,80)
+        this.add(this.documento)
+        
+
+        //Caja de pruebas
+        var caja = new THREE.BoxGeometry(4, 8, 4, 2, 1)
+        caja.translate(0,4,0)
+        this.cajaMesh = new THREE.Mesh(caja, this.material)
+
+        this.add(this.cajaMesh)
+        this.pickableObjects.push(this.cajaMesh)
+
+        this.cajaMesh.position.x = -4
+        this.cajaMesh.position.z = 24.3
     }
     
     createCamera () {
@@ -116,7 +145,7 @@ class MyScene extends THREE.Scene {
         //   El ángulo del campo de visión vértical en grados sexagesimales
         //   La razón de aspecto ancho/alto
         //   Los planos de recorte cercano y lejano
-        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 5, 2000);
+        this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 5, 2000);
         // También se indica dónde se coloca
         this.camera.position.set (-80, 17.5, 50);
         // Y hacia dónde mira
@@ -156,25 +185,25 @@ class MyScene extends THREE.Scene {
 
     createDoors(){
 
-        var texture = new THREE.TextureLoader().load('../imgs/puerta.jpg');
-        //texture.wrapS = THREE.RepeatWrapping
-        //texture.wrapT = THREE.RepeatWrapping
-        //texture.repeat.set(2, 1)
-        var materialDoor = new THREE.MeshPhongMaterial ({map: texture});
+        var texture = new THREE.TextureLoader().load('../imgs/puerta.jpg')
+        var materialDoor = new THREE.MeshPhongMaterial ({map: texture})
 
+        var textureViejo = new THREE.TextureLoader().load('../imgs/wood-texture.jpg')
+        var materialDoorViejo = new THREE.MeshPhongMaterial ({map: textureViejo})
+
+        // Puerta que no abre
         var puertaUno = new THREE.BoxGeometry(0.3, 23, 16, 2, 1)
         puertaUno.translate(0, 11, 8)
         var puertaUnoMesh = new THREE.Mesh(puertaUno, materialDoor)
         puertaUnoMesh.position.x = -100
         puertaUnoMesh.position.z = 42
         
-        
+        // Puerta que sí abre con su pomo
         var puertaDosGeom = new THREE.BoxGeometry(16, 25, 0.3, 2 ,1)
         puertaDosGeom.translate(8, 11, 0)
         this.puertaDos = new THREE.Mesh(puertaDosGeom, materialDoor)
         this.puertaDos.position.x = 42
         this.puertaDos.position.z = -100
-        //this.puertaDos.rotation.y = Math.PI/2
 
         var pomoGeom = new THREE.CylinderGeometry (0.6,0.6,1.5,16)
         pomoGeom.rotateX(Math.PI/2)
@@ -183,8 +212,23 @@ class MyScene extends THREE.Scene {
         this.pomo.position.x = 42
         this.pomo.position.z = -100
 
+        var puertaTresGeom = new THREE.BoxGeometry(16, 25, 0.3, 2 ,1)
+        puertaTresGeom.translate(8, 11, 0)
+        this.puertaTres = new THREE.Mesh(puertaTresGeom, materialDoorViejo)
+        this.puertaTres.position.x = -61
+        //this.puertaTres.position.z = -100
+
+        var pomoViejoGeom = new THREE.CylinderGeometry (0.6,0.6,1.5,16)
+        pomoViejoGeom.rotateX(Math.PI/2)
+        pomoViejoGeom.translate(14, 11, 0.4)
+        this.pomoViejo = new THREE.Mesh (pomoViejoGeom, this.materialamarillo)
+        this.pomoViejo.position.x = -61
+        //pomoViejo.position.z = -100
+
         this.add(this.pomo)
         this.add(this.puertaDos)
+        this.add(this.pomoViejo)
+        this.add(this.puertaTres)
         this.add(puertaUnoMesh)
     }
 
@@ -212,14 +256,13 @@ class MyScene extends THREE.Scene {
         
         this.pared = new THREE.Mesh()
         this.pared = csg1.toMesh()
-        this.colisionesObjects.push(this.pared)
 
         
-        //Marcos de la puerta
+        //Marcos exteriores de la puerta
         var marcoPuertaUno = new THREE.BoxGeometry(16, 25, 16)
         var marcoPuertaDos = new THREE.BoxGeometry(16, 25, 16)
         marcoPuertaUno.translate(-100, 10, 50)
-        marcoPuertaDos.translate(50, 10, -100)
+        marcoPuertaDos.translate(50, 11, -100)
         var marcoPuertaUnoMesh = new THREE.Mesh(marcoPuertaUno)
         var marcoPuertaDosMesh = new THREE.Mesh(marcoPuertaDos)
 
@@ -249,10 +292,14 @@ class MyScene extends THREE.Scene {
         paredInt.translate(50,15,50)
         paredIntResta.translate(49.75,15,49.75)
 
+        var marcoPuertaTres = new THREE.BoxGeometry(16, 25, 16)
+        marcoPuertaTres.translate(47, 11, 95)
+        var marcoPuertaTresMesh = new THREE.Mesh(marcoPuertaTres, this.material)
+
         var csg3 = new CSG()
 
         csg3.union([paredIntMesh])
-        csg3.subtract([paredIntRestaMesh])
+        csg3.subtract([paredIntRestaMesh, marcoPuertaTresMesh])
 
         this.paredInterna = new THREE.Mesh()
         this.paredInterna = csg3.toMesh()
@@ -260,7 +307,6 @@ class MyScene extends THREE.Scene {
         this.paredInterna.position.z = -100
 
         this.add(this.paredInterna)
-        this.colisionesObjects.push(this.paredInterna)
         
 
         // Techo
@@ -303,39 +349,6 @@ class MyScene extends THREE.Scene {
         return gui;
     }
 
-    createLamparas(){
-        
-        var materialrojo = new THREE.MeshPhongMaterial({color: 0xFF0000, transparent: true, opacity: 0.9})
-        var materialverde = new THREE.MeshPhongMaterial({color: 0x00FF00 })
-        var materialblanco = new THREE.MeshPhongMaterial({color: 0xFFFFFF, transparent: true, opacity: 0.5})
-        
-        var esferaRojaGeom = new THREE.SphereGeometry(1,20,20)
-        //this.esferaRojaGeom.translate(10, 0, 0)
-        var esferaRoja = new THREE.Mesh(esferaRojaGeom, materialblanco)
-        esferaRoja.position.x = 50
-        esferaRoja.position.y = 25
-        esferaRoja.position.z = -99
-        
-
-        this.add(esferaRoja)
-
-        this.pointLightPuerta1 = new THREE.PointLight (0x00FF00, 0.1, 0, 1)
-        this.pointLightPuerta1.position.set(50, 25, -99)
-        this.add(this.pointLightPuerta1)
-
-        //this.esferaVerdeGeom = new THREE.SphereGeometry(1,20,20);
-        //this.esferaVerdeGeom.translate(12, 0, 0);
-
-
-        /*for(let i = 0; i < 12; i++){
-            var esferaVerdeHora = new THREE.Mesh(this.esferaVerdeGeom, this.materialverde);
-            esferaVerdeHora.rotation.y = (i*this.rotacion);
-            this.add(esferaVerdeHora);
-        }*/
-        
-        //this.reloj = new THREE.Clock();
-    }
-
     createLights () {
         // Se crea una luz ambiental, evita que se vean complentamente negras las zonas donde no incide de manera directa una fuente de luz
         // La luz ambiental solo tiene un color y una intensidad
@@ -353,16 +366,66 @@ class MyScene extends THREE.Scene {
         // En este caso se declara como   this.atributo   para que sea un atributo accesible desde otros métodos.
         this.spotLight = new THREE.SpotLight( 0xffffff, this.guiControls.lightIntensity );
         this.spotLight.position.set( 50, 20, 50 );
-        this.spotLight.target
+        //this.spotLight.target
         //this.add (this.spotLight);
 
+        var materialrojo = new THREE.MeshLambertMaterial({color: 0xFF0000, emissive: 0xFF0000, emissiveIntensity: 0.2})
+        var materialverde = new THREE.MeshLambertMaterial({color:0x00FF00, emissive: 0x00FF00, emissiveIntensity: 0.2})
+        var materialblanco = new THREE.MeshLambertMaterial({color:0xFFFFFF, emissive: 0xFFFFFF, emissiveIntensity: 0.6})
 
-        this.pointLight1 = new THREE.PointLight (0xffffff, this.guiControls.lightIntensity, 0, 1)
-        this.pointLight1.position.set(50, 20, 50)
-        this.add(this.pointLight1)
+        // **** Lámpara del techo ****
+        var esferaGeom = new THREE.SphereGeometry(1,20,20)
+        var lamparaSala = new THREE.Mesh(esferaGeom, materialblanco)
+        lamparaSala.position.x = 50
+        lamparaSala.position.y = 29.2
+        lamparaSala.position.z = 50
+        this.add(lamparaSala)
+
+        this.lamparaSalaLuz = new THREE.PointLight (0xffffff, this.guiControls.lightIntensity, 0, 1)
+        this.lamparaSalaLuz.position.set(50, 29.2, 50)
+        this.add(this.lamparaSalaLuz)
+
+        //var esferaGeom = new THREE.SphereGeometry(1,20,20)
+        var lamparaSalaDos = new THREE.Mesh(esferaGeom, materialblanco)
+        lamparaSalaDos.position.x = -50
+        lamparaSalaDos.position.y = 29.2
+        lamparaSalaDos.position.z = -50
+        //this.add(lamparaSalaDos)
+
+        this.lamparaSalaLuzDos = new THREE.PointLight (0xffffff, this.guiControls.lightIntensity, 0, 1)
+        this.lamparaSalaLuzDos.position.set(-50, 29.2, -50)
+        //this.add(this.lamparaSalaLuzDos)
 
 
-        //this.createLamparas()
+
+        var esferaParedGeom = new THREE.SphereGeometry(1,20,20)
+        var lamparaPared = new THREE.Mesh(esferaParedGeom, materialblanco)
+        lamparaPared.position.x = 99
+        lamparaPared.position.y = 25
+        lamparaPared.position.z = -80
+        this.add(lamparaPared)
+
+
+        // **** Lámpara de la puerta ****
+        var esferaGeom = new THREE.SphereGeometry(1,20,20)
+        var lamparaPuerta = new THREE.Mesh(esferaGeom, materialrojo)
+        lamparaPuerta.position.x = 50
+        lamparaPuerta.position.y = 25
+        lamparaPuerta.position.z = -99
+        this.add(lamparaPuerta)
+
+        var target = new THREE.Object3D()
+        target.position.x = 90
+        target.position.y = 26
+        target.position.z = -120
+        //target.position.set(53, 26, -120)
+
+        console.log(target)
+
+        this.pointLightPuerta1 = new THREE.SpotLight (0xFF0000, 0.1, 0)
+        this.pointLightPuerta1.position.set(50, 25, -99)
+        this.pointLightPuerta1.target = target
+        this.add(this.pointLightPuerta1)
 
         
     }
@@ -545,12 +608,31 @@ class MyScene extends THREE.Scene {
                 //console.log(this.pickableObjects[0])
                 //console.log(pickedObjects[0])
 
-                //console.log(selectedPointObject.x)
-                //console.log(selectedPointObject.z)
+                //console.log(selectedObject.geometry)
+                selectedObject.geometry.computeBoundingBox()
+                var boundingBox1 = selectedObject.geometry.boundingBox
+
+                this.pedestal1.getMesh().geometry.computeBoundingBox()
+
+                var boundingBox2 = this.pedestal1.getMesh().geometry.boundingBox
+
+                if(boundingBox2.intersectsBox(boundingBox1)){
+                    console.log("COLISIOOON")
+                    selectedObject.position.y = 26
+                }
+                
+                // for(let i=0; i<this.colisionesObjects.length; i++){
+                //     console.log(this.colisionesObjects[0].getMesh().geometry)
+                    
+                    
+                // }
+
+                //console.log(boundingBox1)
     
                 selectedObject.position.x = selectedPointObject.x
                 selectedObject.position.z = selectedPointObject.z
-                //selectedObject.position.y = selectedPointObject.y
+                selectedObject.position.y = 0
+                
                 
                 /*
                 if(selectedPointObject.y < 0+10){
@@ -584,11 +666,14 @@ class MyScene extends THREE.Scene {
 
         var pomoPuerta = raycaster.intersectObject(this.pomo, true)
 
-        console.log(this.pomo)
-        console.log(pomoPuerta)
-
         if(pomoPuerta.length > 0){
-            this.rotationPuerta = true
+            this.rotationPuertaExterna = true
+        }
+
+        var documentoNumeros = raycaster.intersectObject(this.documento, true)
+
+        if(documentoNumeros.length > 0){
+            window.alert("- Hay escrito un número:\n\n347")
         }
 
         this.mouseDown = true
@@ -608,7 +693,7 @@ class MyScene extends THREE.Scene {
             
             var distanciaMasCercano = impactados[0].distance
 
-            console.log("DISTANCIA - "+distanciaMasCercano)
+            //console.log("DISTANCIA - "+distanciaMasCercano)
 
             return (distanciaMasCercano < 10)
 
@@ -624,12 +709,16 @@ class MyScene extends THREE.Scene {
         this.renderer.render (this, this.getCamera());
         this.reloj.update()
 
-        if(this.rotationPuerta && this.puertaDos.rotation.y < Math.PI/2){
-            this.puertaDos.rotation.y += this.rotacion * this.clock.getDelta() * 2
+        var delta = this.clock.getDelta()
+
+        if(this.puertaDesbloqueadaExterna && this.rotationPuertaExterna && this.puertaDos.rotation.y < Math.PI/2){
+            this.puertaDos.rotation.y += this.rotacion * delta * 2
+            this.pomo.rotation.y += this.rotacion * delta * 2
         }
 
-        if(this.rotationPuerta && this.pomo.rotation.y < Math.PI/2){
-            this.pomo.rotation.y += this.rotacion * this.clock.getDelta() * 2
+        if(this.puertaDesbloqueadaInterna && this.puertaTres.rotation.y < Math.PI/2){
+            this.puertaTres.rotation.y += this.rotacion * delta * 2
+            this.pomoViejo.rotation.y += this.rotacion * delta * 2
         }
         
         if(this.avanzar){

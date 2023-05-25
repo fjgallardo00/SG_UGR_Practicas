@@ -16,6 +16,10 @@ class Pedestal extends THREE.Object3D {
         this.createPedestal()
     }
 
+    getMesh(){
+        return this.pedestal
+    }
+
     getHeight(){
         return this.hCilindro+this.hCaja*2
     }
@@ -48,21 +52,10 @@ class Pedestal extends THREE.Object3D {
         this.pedestal = new THREE.Mesh()
         this.pedestal = csg.toMesh()
         this.add (this.pedestal)
-
-        this.pedestal.position.x = -4
-        this.pedestal.position.z = 24.3
     }
   
     update () {
-		// Con independencia de cómo se escriban las 3 siguientes líneas, el orden en el que se aplican las transformaciones es:
-        // Primero, el escalado
-        // Segundo, la rotación en Z
-        // Después, la rotación en Y
-        // Luego, la rotación en X
-        // Y por último la traslación
-    
-        //this.esferaRoja.rotation.y -= this.guiControls.velocidad * this.rotacion * this.reloj.getDelta()
-
+		
     }
 }
 
