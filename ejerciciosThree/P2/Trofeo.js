@@ -6,10 +6,10 @@ class Trofeo extends THREE.Object3D {
         super();
         
         // Puntos
-        var points = [];
+        var points = []
         
         // Se añaden puntos al array mediante unas cuantas instrucciones como la siguiente definimos el contorno a revolucionar
-        this.createQueen(points);
+        this.createQueen(points)
 
         var materialamarillo = new THREE.MeshPhongMaterial({color: 0xc8c32b })
         var materialinvisible = new THREE.MeshPhongMaterial({transparent: true, opacity: 0})
@@ -32,6 +32,17 @@ class Trofeo extends THREE.Object3D {
 
         this.trofeo = new THREE.Mesh()
         this.trofeo = csg.toMesh()
+
+        // var trofeoAux = new THREE.Mesh()
+        // trofeoAux = csg.toMesh()
+
+        // this.trofeoA = new THREE.Object3D()
+        // this.trofeoA.add(trofeoAux)
+        // this.trofeoA.add(caja)
+
+        // this.trofeo = new THREE.Mesh()
+        // this.trofeo.add(this.trofeoA)
+
         this.add(this.trofeo)
     }
 

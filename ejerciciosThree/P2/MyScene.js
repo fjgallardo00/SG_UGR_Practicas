@@ -3,7 +3,6 @@
 
 import * as THREE from '../libs/three.module.js'
 import { GUI } from '../libs/dat.gui.module.js'
-import { TrackballControls } from '../libs/TrackballControls.js'
 import { CSG } from '../libs/CSG-v2.js'
 import { PointerLockControls } from './PointerLockControls.js'
 import * as KeyCode from '../libs/keycode.esm.js'
@@ -17,6 +16,8 @@ import { Reloj } from './Reloj.js'
 import { Trofeo } from './Trofeo.js'
 import { Documento } from './documento.js'
 import { Taza } from './Taza.js'
+import { MySpotLight } from './MySpotLight.js'
+import { PanelNumeros } from './PanelNumeros.js'
 
  
 /// La clase fachada del modelo
@@ -52,12 +53,23 @@ class MyScene extends THREE.Scene {
         
         this.material = new THREE.MeshNormalMaterial()
         this.materialamarillo = new THREE.MeshPhongMaterial({color: 0xc8c32b })
+        this.materialnegro = new THREE.MeshPhongMaterial({color: 0x000000 })
 
         this.clock = new THREE.Clock();
         this.rotacion = (Math.PI*2/12); //rotacion para cada hora
-        this.puertaDesbloqueadaExterna = true
-        this.puertaDesbloqueadaInterna = true
+        this.segundos = 0
+        this.puertaDesbloqueadaExterna = false
+        this.puertaDesbloqueadaInterna = false
         this.rotationPuertaExterna = false
+        this.colorLamparaPuerta = "rojo"
+        this.camaraActual = "personal"
+
+        this.panelResuelto = false
+
+        this.luzPuzleOn1 = false
+        this.luzPuzleOn2 = false
+        this.luzPuzleOn3 = false
+        this.puzleCompleto = false
         
         this.createLights ();
         
@@ -79,10 +91,8 @@ class MyScene extends THREE.Scene {
         
         this.trofeo = new Trofeo()
         this.add(this.trofeo)
-        //this.pickableObjects.push(this.trofeo)
+        this.pickableObjects.push(this.trofeo)
         this.trofeo.setPosition(-90,0,90)
-        //this.trofeo.position.x = -4
-        //this.trofeo.position.z = 24.3
 
         this.taza = new Taza()
         this.taza.setPosition(85,11.5,85)
@@ -121,23 +131,26 @@ class MyScene extends THREE.Scene {
         this.add (this.pedestal4)
         this.add (this.pedestal5)
 
-        this.colisionesObjects.push(this.pedestal1)
+        this.colisionesObjects.push(this.pedestal2)
 
         this.documento = new Documento()
         this.documento.setPosition(80,10.25,80)
         this.add(this.documento)
-        
+
+        this.panelNumeros = new PanelNumeros()
+        this.add(this.panelNumeros)
+
+        this.createBotonesPuzle()
 
         //Caja de pruebas
-        var caja = new THREE.BoxGeometry(4, 8, 4, 2, 1)
-        caja.translate(0,4,0)
-        this.cajaMesh = new THREE.Mesh(caja, this.material)
+        // var caja = new THREE.BoxGeometry(4, 8, 4, 2, 1)
+        // caja.translate(0,4,0)
+        // this.cajaMesh = new THREE.Mesh(caja, this.material)
+        // this.cajaMesh.position.x = -4
+        // this.cajaMesh.position.z = 24.3
 
-        this.add(this.cajaMesh)
-        this.pickableObjects.push(this.cajaMesh)
-
-        this.cajaMesh.position.x = -4
-        this.cajaMesh.position.z = 24.3
+        //this.add(this.cajaMesh)
+        //this.pickableObjects.push(this.cajaMesh)
     }
     
     createCamera () {
@@ -145,13 +158,28 @@ class MyScene extends THREE.Scene {
         //   El ángulo del campo de visión vértical en grados sexagesimales
         //   La razón de aspecto ancho/alto
         //   Los planos de recorte cercano y lejano
-        this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 5, 2000);
+        this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 5, 500)
+        this.cameraPuerta = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 5, 500)
+        this.cameraPanel = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 5, 500)
+
+        
         // También se indica dónde se coloca
-        this.camera.position.set (-80, 17.5, 50);
+        this.camera.position.set (-80, 17.5, 50)
+        this.cameraPuerta.position.set(20, 25, -20)
+        this.cameraPanel.position.set(-15, 15, -80)
+
         // Y hacia dónde mira
-        var look = new THREE.Vector3 (0,17.5,50);
-        this.camera.lookAt(look);
-        this.add (this.camera);
+        var look = new THREE.Vector3 (0,17.5,50)
+        var lookPuerta = new THREE.Vector3 (50,17.5,-81)
+        var lookPanel = new THREE.Vector3(-15,15,-100)
+
+        this.camera.lookAt(look)
+        this.cameraPuerta.lookAt(lookPuerta)
+        this.cameraPanel.lookAt(lookPanel)
+
+        this.add (this.camera)
+        this.add(this.cameraPuerta)
+        this.add(this.cameraPanel)
         
         this.cameraControl = new PointerLockControls (this.camera, this.renderer.domElement)
 
@@ -216,14 +244,12 @@ class MyScene extends THREE.Scene {
         puertaTresGeom.translate(8, 11, 0)
         this.puertaTres = new THREE.Mesh(puertaTresGeom, materialDoorViejo)
         this.puertaTres.position.x = -61
-        //this.puertaTres.position.z = -100
 
         var pomoViejoGeom = new THREE.CylinderGeometry (0.6,0.6,1.5,16)
         pomoViejoGeom.rotateX(Math.PI/2)
         pomoViejoGeom.translate(14, 11, 0.4)
         this.pomoViejo = new THREE.Mesh (pomoViejoGeom, this.materialamarillo)
         this.pomoViejo.position.x = -61
-        //pomoViejo.position.z = -100
 
         this.add(this.pomo)
         this.add(this.puertaDos)
@@ -349,6 +375,100 @@ class MyScene extends THREE.Scene {
         return gui;
     }
 
+    createBotonesPuzle(){
+        var boton1Geom = new THREE.CylinderGeometry (1,1,0.6,16)
+        boton1Geom.translate(0,0.3,0)
+        this.boton1 = new THREE.Mesh (boton1Geom, this.material)
+        this.boton1.rotation.z = Math.PI/2
+        this.boton1.position.x = 99.7
+        this.boton1.position.y = 15
+        this.boton1.position.z = -80
+        this.add(this.boton1)
+
+        var boton2Geom = new THREE.CylinderGeometry (1,1,0.6,16)
+        boton2Geom.translate(0,0.3,0)
+        this.boton2 = new THREE.Mesh (boton2Geom, this.material)
+        this.boton2.rotation.z = Math.PI/2
+        this.boton2.position.x = 99.7
+        this.boton2.position.y = 15
+        this.boton2.position.z = -70
+        this.add(this.boton2)
+
+        var boton3Geom = new THREE.CylinderGeometry (1,1,0.6,16)
+        boton3Geom.translate(0,0.3,0)
+        this.boton3 = new THREE.Mesh (boton3Geom, this.material)
+        this.boton3.rotation.z = Math.PI/2
+        this.boton3.position.x = 99.7
+        this.boton3.position.y = 15
+        this.boton3.position.z = -60
+        this.add(this.boton3)
+    }
+
+    switchLights(boton){
+        switch (boton) {
+            case 1:
+                if(this.lamparaPuzle3.getLightIntensity() == 0){
+                    this.lamparaPuzle3.setLightIntensity(0.8)
+                    this.lamparaPuzle3.setEmissiveIntensity(0.8)
+                    this.luzPuzleOn3 = true
+                }
+                else{
+                    this.lamparaPuzle3.setLightIntensity(0)
+                    this.lamparaPuzle3.setEmissiveIntensity(0)
+                    this.luzPuzleOn3 = false
+                }
+                break
+            case 2:
+                if(this.lamparaPuzle1.getLightIntensity() == 0){
+                    this.lamparaPuzle1.setLightIntensity(0.8)
+                    this.lamparaPuzle1.setEmissiveIntensity(0.8)
+                    this.luzPuzleOn1 = true
+                }
+                else{
+                    this.lamparaPuzle1.setLightIntensity(0)
+                    this.lamparaPuzle1.setEmissiveIntensity(0)
+                    this.luzPuzleOn1 = false
+                }
+                
+                if(this.lamparaPuzle3.getLightIntensity() == 0){
+                    this.lamparaPuzle3.setLightIntensity(0.8)
+                    this.lamparaPuzle3.setEmissiveIntensity(0.8)
+                    this.luzPuzleOn3 = true
+                }
+                else{
+                    this.lamparaPuzle3.setLightIntensity(0)
+                    this.lamparaPuzle3.setEmissiveIntensity(0)
+                    this.luzPuzleOn3 = false
+                }
+                break
+            case 3:
+                if(this.lamparaPuzle2.getLightIntensity() == 0){
+                    this.lamparaPuzle2.setLightIntensity(0.8)
+                    this.lamparaPuzle2.setEmissiveIntensity(0.8)
+                    this.luzPuzleOn2 = true
+                }
+                else{
+                    this.lamparaPuzle2.setLightIntensity(0)
+                    this.lamparaPuzle2.setEmissiveIntensity(0)
+                    this.luzPuzleOn2 = false
+                }
+                
+                if(this.lamparaPuzle1.getLightIntensity() == 0){
+                    this.lamparaPuzle1.setLightIntensity(0.8)
+                    this.lamparaPuzle1.setEmissiveIntensity(0.8)
+                    this.luzPuzleOn1 = true
+                }
+                else{
+                    this.lamparaPuzle1.setLightIntensity(0)
+                    this.lamparaPuzle1.setEmissiveIntensity(0)
+                    this.luzPuzleOn1 = false
+                }
+                break
+            default:
+                break
+        }
+    }
+
     createLights () {
         // Se crea una luz ambiental, evita que se vean complentamente negras las zonas donde no incide de manera directa una fuente de luz
         // La luz ambiental solo tiene un color y una intensidad
@@ -358,19 +478,6 @@ class MyScene extends THREE.Scene {
         // La añadimos a la escena
         this.add (ambientLight);
 
-        //var target = new THREE
-        
-        // Se crea una luz focal que va a ser la luz principal de la escena
-        // La luz focal, además tiene una posición, y un punto de mira
-        // Si no se le da punto de mira, apuntará al (0,0,0) en coordenadas del mundo
-        // En este caso se declara como   this.atributo   para que sea un atributo accesible desde otros métodos.
-        this.spotLight = new THREE.SpotLight( 0xffffff, this.guiControls.lightIntensity );
-        this.spotLight.position.set( 50, 20, 50 );
-        //this.spotLight.target
-        //this.add (this.spotLight);
-
-        var materialrojo = new THREE.MeshLambertMaterial({color: 0xFF0000, emissive: 0xFF0000, emissiveIntensity: 0.2})
-        var materialverde = new THREE.MeshLambertMaterial({color:0x00FF00, emissive: 0x00FF00, emissiveIntensity: 0.2})
         var materialblanco = new THREE.MeshLambertMaterial({color:0xFFFFFF, emissive: 0xFFFFFF, emissiveIntensity: 0.6})
 
         // **** Lámpara del techo ****
@@ -385,49 +492,31 @@ class MyScene extends THREE.Scene {
         this.lamparaSalaLuz.position.set(50, 29.2, 50)
         this.add(this.lamparaSalaLuz)
 
-        //var esferaGeom = new THREE.SphereGeometry(1,20,20)
-        var lamparaSalaDos = new THREE.Mesh(esferaGeom, materialblanco)
-        lamparaSalaDos.position.x = -50
-        lamparaSalaDos.position.y = 29.2
-        lamparaSalaDos.position.z = -50
-        //this.add(lamparaSalaDos)
+        // **** Lámparas del puzle ****
+        this.lamparaPuzle1 = new MySpotLight(0xDDA727, 0, 0)
+        this.lamparaPuzle1.setPositionTarget(99, 30, -80)
+        this.lamparaPuzle1.setPositionSphere(99, 20.5, -80)
+        this.lamparaPuzle1.setPositionLight(99, 20, -80)
+        this.add(this.lamparaPuzle1)
 
-        this.lamparaSalaLuzDos = new THREE.PointLight (0xffffff, this.guiControls.lightIntensity, 0, 1)
-        this.lamparaSalaLuzDos.position.set(-50, 29.2, -50)
-        //this.add(this.lamparaSalaLuzDos)
+        this.lamparaPuzle2 = new MySpotLight(0xDDA727, 0, 0)
+        this.lamparaPuzle2.setPositionTarget(99, 30, -70)
+        this.lamparaPuzle2.setPositionSphere(99, 20.5, -70)
+        this.lamparaPuzle2.setPositionLight(99, 20, -70)
+        this.add(this.lamparaPuzle2)
 
-
-
-        var esferaParedGeom = new THREE.SphereGeometry(1,20,20)
-        var lamparaPared = new THREE.Mesh(esferaParedGeom, materialblanco)
-        lamparaPared.position.x = 99
-        lamparaPared.position.y = 25
-        lamparaPared.position.z = -80
-        this.add(lamparaPared)
-
+        this.lamparaPuzle3 = new MySpotLight(0xDDA727, 0, 0)
+        this.lamparaPuzle3.setPositionTarget(99, 30, -60)
+        this.lamparaPuzle3.setPositionSphere(99, 20.5, -60)
+        this.lamparaPuzle3.setPositionLight(99, 20, -60)
+        this.add(this.lamparaPuzle3)
 
         // **** Lámpara de la puerta ****
-        var esferaGeom = new THREE.SphereGeometry(1,20,20)
-        var lamparaPuerta = new THREE.Mesh(esferaGeom, materialrojo)
-        lamparaPuerta.position.x = 50
-        lamparaPuerta.position.y = 25
-        lamparaPuerta.position.z = -99
-        this.add(lamparaPuerta)
-
-        var target = new THREE.Object3D()
-        target.position.x = 90
-        target.position.y = 26
-        target.position.z = -120
-        //target.position.set(53, 26, -120)
-
-        console.log(target)
-
-        this.pointLightPuerta1 = new THREE.SpotLight (0xFF0000, 0.1, 0)
-        this.pointLightPuerta1.position.set(50, 25, -99)
-        this.pointLightPuerta1.target = target
-        this.add(this.pointLightPuerta1)
-
-        
+        this.lamparaPuerta = new MySpotLight(0xFF0000, 0.5, 0.8)
+        this.lamparaPuerta.setPositionTarget(50, 30, -99)
+        this.lamparaPuerta.setPositionSphere(50, 25.5, -99)
+        this.lamparaPuerta.setPositionLight(50, 25, -99)
+        this.add(this.lamparaPuerta)
     }
     
     setLightIntensity (valor) {
@@ -457,10 +546,19 @@ class MyScene extends THREE.Scene {
         return renderer;  
     }
     
-    getCamera () {
+    getCamera(camara) {
         // En principio se devuelve la única cámara que tenemos
         // Si hubiera varias cámaras, este método decidiría qué cámara devuelve cada vez que es consultado
-        return this.camera;
+        switch (camara) {
+            case "personal":
+                return this.camera
+            case "puertaSalida":
+                return this.cameraPuerta
+            case "panel":
+                return this.cameraPanel
+            default:
+                break
+        }
     }
     
     setCameraAspect (ratio) {
@@ -523,6 +621,18 @@ class MyScene extends THREE.Scene {
             case "S":
                 this.avanzar = true
                 this.avanzar_atras = true
+                break;
+            case "C":
+                switch (this.camaraActual) {
+                    case "personal":
+                        this.camaraActual = "panel"
+                        break
+                    case "panel":
+                        this.camaraActual = "personal"
+                        break
+                    default:
+                        break
+                }
                 break;
             default:
                 break;
@@ -599,52 +709,23 @@ class MyScene extends THREE.Scene {
                 // Coordenada del mundo donde se ha hecho click del Mesh
                 var selectedPointObject = pickedObjects[0].point
 
-                var suelo = raycaster.intersectObject(this.ground, true)
+                var posicionPedestal = new THREE.Vector3()
+                this.colisionesObjects[0].getWorldPosition(posicionPedestal)
 
-                var selectedPointSuelo = suelo.point
-
-                //selectedObject.material.emissive.setHex((this.reloj.getDelta() * 8) % 2 > 1 ? 0xFFFF00 : 0xFF0000);
-
-                //console.log(this.pickableObjects[0])
-                //console.log(pickedObjects[0])
-
-                //console.log(selectedObject.geometry)
-                selectedObject.geometry.computeBoundingBox()
-                var boundingBox1 = selectedObject.geometry.boundingBox
-
-                this.pedestal1.getMesh().geometry.computeBoundingBox()
-
-                var boundingBox2 = this.pedestal1.getMesh().geometry.boundingBox
-
-                if(boundingBox2.intersectsBox(boundingBox1)){
-                    console.log("COLISIOOON")
-                    selectedObject.position.y = 26
-                }
+                var difX = Math.abs(selectedPointObject.x-posicionPedestal.x)
+                var difZ = Math.abs(selectedPointObject.z-posicionPedestal.z)
                 
-                // for(let i=0; i<this.colisionesObjects.length; i++){
-                //     console.log(this.colisionesObjects[0].getMesh().geometry)
-                    
-                    
-                // }
-
-                //console.log(boundingBox1)
-    
-                selectedObject.position.x = selectedPointObject.x
-                selectedObject.position.z = selectedPointObject.z
-                selectedObject.position.y = 0
-                
-                
-                /*
-                if(selectedPointObject.y < 0+10){
-                    selectedObject.position.y = 10
-                }
-                else if(selectedPointObject.y > 30-10){
-                    selectedObject.position.y = 30-10
+                if(difX < 6 && difZ < 6){
+                    this.puertaDesbloqueadaInterna = true
+                    selectedObject.position.x = posicionPedestal.x
+                    selectedObject.position.y = this.colisionesObjects[0].getHeight()
+                    selectedObject.position.z = posicionPedestal.z
                 }
                 else{
-                    selectedObject.position.y = selectedPointObject.y
+                    selectedObject.position.x = selectedPointObject.x
+                    selectedObject.position.y = 0
+                    selectedObject.position.z = selectedPointObject.z
                 }
-                */
             }
         }
 
@@ -658,15 +739,10 @@ class MyScene extends THREE.Scene {
         
         var raycaster = new THREE.Raycaster()
         raycaster.setFromCamera(this.mouse, this.camera)
-        var suelo = raycaster.intersectObject(this.ground, true)
-        
-        //this.puntoSuelo = suelo[0].point
-        
-        //console.log(this.puntoSuelo)
 
         var pomoPuerta = raycaster.intersectObject(this.pomo, true)
 
-        if(pomoPuerta.length > 0){
+        if(pomoPuerta.length > 0 && this.colorLamparaPuerta == "verde"){
             this.rotationPuertaExterna = true
         }
 
@@ -676,11 +752,48 @@ class MyScene extends THREE.Scene {
             window.alert("- Hay escrito un número:\n\n347")
         }
 
+        var botonPuzle1 = raycaster.intersectObject(this.boton1, true)
+        var botonPuzle2 = raycaster.intersectObject(this.boton2, true)
+        var botonPuzle3 = raycaster.intersectObject(this.boton3, true)
+
+        if(botonPuzle1.length > 0){
+            this.switchLights(1)
+            this.boton1.position.x = 99.9
+        }
+
+        if(botonPuzle2.length > 0){
+            this.switchLights(2)
+            this.boton2.position.x = 99.9
+        }
+
+        if(botonPuzle3.length > 0){
+            this.switchLights(3)
+            this.boton3.position.x = 99.9
+        }
+
+        var raycasterPanel = new THREE.Raycaster()
+        raycasterPanel.setFromCamera(this.mouse, this.cameraPanel)
+
+        var teclaOK = raycasterPanel.intersectObject(this.panelNumeros.getBotonVerde(), true)
+
+        if(teclaOK.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.panelResuelto = true
+        }
+
+        var teclaSalir = raycasterPanel.intersectObject(this.panelNumeros.getBotonSalir(), true)
+
+        if(teclaSalir.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.camaraActual = "personal"
+        }
+
         this.mouseDown = true
     }
 
     onMouseUp(){
         this.mouseDown = false
+        this.boton1.position.x = 99.7
+        this.boton2.position.x = 99.7
+        this.boton3.position.x = 99.7
     }
     
     testColision(donde_estoy, donde_miro){
@@ -706,10 +819,30 @@ class MyScene extends THREE.Scene {
 
     update () {
         // Le decimos al renderizador "visualiza la escena que te indico usando la cámara que te estoy pasando"
-        this.renderer.render (this, this.getCamera());
+        
         this.reloj.update()
+        this.panelNumeros.update()
 
         var delta = this.clock.getDelta()
+
+        if(this.panelResuelto){
+            
+            if(this.segundos < 400){
+                this.segundos += 1
+                this.renderer.render (this, this.getCamera("puertaSalida"))
+                if(this.segundos > 200){
+                    this.colorLamparaPuerta = "verde"
+                    this.lamparaPuerta.setColor(0x00FF00)
+                    this.puertaDesbloqueadaExterna = true
+                }
+            }
+            else{
+                this.renderer.render (this, this.getCamera(this.camaraActual))
+            }
+        }
+        else{
+            this.renderer.render (this, this.getCamera(this.camaraActual))
+        }
 
         if(this.puertaDesbloqueadaExterna && this.rotationPuertaExterna && this.puertaDos.rotation.y < Math.PI/2){
             this.puertaDos.rotation.y += this.rotacion * delta * 2
@@ -721,6 +854,14 @@ class MyScene extends THREE.Scene {
             this.pomoViejo.rotation.y += this.rotacion * delta * 2
         }
         
+        if(this.luzPuzleOn1 && this.luzPuzleOn2 && this.luzPuzleOn3){
+            this.puzleCompleto = true
+        }
+
+        if(this.puzleCompleto){
+            this.panelNumeros.setPanelDesblqueado(true)
+        }
+
         if(this.avanzar){
 
             var donde_estoy = new THREE.Vector3()

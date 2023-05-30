@@ -1,38 +1,25 @@
 import * as THREE from '../libs/three.module.js'
-import { CSG } from '../libs/CSG-v2.js'
  
 class MyFigure extends THREE.Object3D {
     constructor() {
         super()
         
-        var material = new THREE.MeshNormalMaterial()
+        var materialazul = new THREE.MeshPhongMaterial({color: 0x4BA7F1, transparent: true, opacity: 0.9 })
 
-        var cilExt = new THREE.CylinderGeometry(5,5,10,24,1)
-        var cilInt = new THREE.CylinderGeometry(4.7,4.7,10,24,1)
-        var toro = new THREE.TorusGeometry(3, 0.5, 24, 24)
+        this.wTapa = 2
+        this.hTapa = 8
 
-        cilInt.translate(0,0.3,0)
-        toro.translate(-5,0,0)
+        var tapaNumerosGeom = new THREE.BoxGeometry(this.h, this.h, this.w, 2, 1)
+        tapaNumerosGeom.translate(0,-this.h/2,this.w/2)
 
-        var cilExtMesh = new THREE.Mesh(cilExt, material)
-        var cilIntMesh = new THREE.Mesh(cilInt, material)
-        var toroMesh = new THREE.Mesh(toro, material)
-        
-        var csg = new CSG();
-        csg.union([cilExtMesh, toroMesh])
-        csg.subtract([cilIntMesh])
+        this.tapaNumeros = new THREE.Mesh(tapaNumerosGeom, materialazul)
+        // this.tapaNumeros.position.x = -15
+        // this.tapaNumeros.position.y = 15
+        // this.tapaNumeros.position.z = -99
 
-        var resultadoMesh = new THREE.Mesh()
+        this.tapaNumeros.rotation.x = -Math.PI/2
+        this.add(this.tapaNumeros)
 
-        resultadoMesh = csg.toMesh()
-        
-        this.add(resultadoMesh)
-    }
-
-    setPosition(x, y, z){
-        this.trofeo.position.x = x
-        this.trofeo.position.y = y
-        this.trofeo.position.z = z
     }
     
     update () {
