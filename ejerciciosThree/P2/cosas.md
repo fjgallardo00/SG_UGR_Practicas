@@ -22,17 +22,13 @@ Hay que tener en cuenta el uso de todas la técnicas para subir nota:
 
 ## Tareas por hacer
 
-- Al seleccionar un objeto y moverlo, se va por ahí. Se debe a que se mueve al punto final del raycasting en el suelo, por lo que el objeto se va por ahí. Hay que cambiar esa cosa
 - Añadir 3 cuadros. Uno encima de la mesa, otro dentro de la sala pequeña y otro en la pared vacía de al lado de la puerta de salida
-- Añadir puzles
 
 ## Ocurrencias
 
 - Para el cuadro con cosas ocultas detrás, se puede usar de textura el mapa del mundo. Poner varios cuadros
 - Poner en uno de los pedestales una figura imitando a un jarrón de cristal con la opacity muy leve para simular la transparencia, y en el otro una figura hecha por extrusión/barrido estrambotica
-- Poner una caja invisible en la parte de arriba del trofeo para poder moverlo con mayor 
-- Al resolver los puzles, hacer una "animacion" con las cámaras para enseñar que la luz de la puerta se ha puesto verde
-- Poner trofeo encima de la mesa
+- Poner una caja invisible en la parte de arriba del trofeo para poder moverlo con mayor
 
 ## Cosas a tener en cuenta
 

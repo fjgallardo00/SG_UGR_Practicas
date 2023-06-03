@@ -18,6 +18,7 @@ import { Documento } from './documento.js'
 import { Taza } from './Taza.js'
 import { MySpotLight } from './MySpotLight.js'
 import { PanelNumeros } from './PanelNumeros.js'
+import { Cuadro } from './Cuadro.js'
 
  
 /// La clase fachada del modelo
@@ -53,7 +54,6 @@ class MyScene extends THREE.Scene {
         
         this.material = new THREE.MeshNormalMaterial()
         this.materialamarillo = new THREE.MeshPhongMaterial({color: 0xc8c32b })
-        this.materialnegro = new THREE.MeshPhongMaterial({color: 0x000000 })
 
         this.clock = new THREE.Clock();
         this.rotacion = (Math.PI*2/12); //rotacion para cada hora
@@ -70,6 +70,8 @@ class MyScene extends THREE.Scene {
         this.luzPuzleOn2 = false
         this.luzPuzleOn3 = false
         this.puzleCompleto = false
+
+        this.contrasena = ""
         
         this.createLights ();
         
@@ -139,6 +141,11 @@ class MyScene extends THREE.Scene {
 
         this.panelNumeros = new PanelNumeros()
         this.add(this.panelNumeros)
+
+        this.cuadro1 = new Cuadro(18, 10, 'tierra.jpg')
+        this.cuadro1.setPosition(99, 20, 80)
+        this.cuadro1.setRotationY(Math.PI/2)
+        this.add(this.cuadro1)
 
         this.createBotonesPuzle()
 
@@ -404,6 +411,101 @@ class MyScene extends THREE.Scene {
         this.add(this.boton3)
     }
 
+    interaccionPanel(){
+
+        var raycasterPanel = new THREE.Raycaster()
+        raycasterPanel.setFromCamera(this.mouse, this.cameraPanel)
+
+        var teclaVerde = raycasterPanel.intersectObject(this.panelNumeros.getBotonVerde(), true)
+
+        if(teclaVerde.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            if(this.contrasena == "3476"){
+                this.panelResuelto = true
+            }
+            else{
+                this.contrasena = ""
+            }
+            this.panelNumeros.setPulsado("verde")
+        }
+
+        var teclaSalir = raycasterPanel.intersectObject(this.panelNumeros.getBotonSalir(), true)
+
+        if(teclaSalir.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.camaraActual = "personal"
+            this.panelNumeros.setPulsado("salir")
+        }
+
+        var teclaRojo = raycasterPanel.intersectObject(this.panelNumeros.getBotonRojo(), true)
+
+        if(teclaRojo.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena = ""
+            this.panelNumeros.setPulsado("rojo")
+        }
+
+        var teclaUno = raycasterPanel.intersectObject(this.panelNumeros.getBotonUno(), true)
+
+        if(teclaUno.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena += "1"
+            this.panelNumeros.setPulsado(1)
+        }
+
+        var teclaDos = raycasterPanel.intersectObject(this.panelNumeros.getBotonDos(), true)
+
+        if(teclaDos.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena += "2"
+            this.panelNumeros.setPulsado(2)
+        }
+
+        var teclaTres = raycasterPanel.intersectObject(this.panelNumeros.getBotonTres(), true)
+
+        if(teclaTres.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena += "3"
+            this.panelNumeros.setPulsado(3)
+        }
+
+        var teclaCuatro = raycasterPanel.intersectObject(this.panelNumeros.getBotonCuatro(), true)
+
+        if(teclaCuatro.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena += "4"
+            this.panelNumeros.setPulsado(4)
+        }
+
+        var teclaCinco = raycasterPanel.intersectObject(this.panelNumeros.getBotonCinco(), true)
+
+        if(teclaCinco.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena += "5"
+            this.panelNumeros.setPulsado(5)
+        }
+
+        var teclaSeis = raycasterPanel.intersectObject(this.panelNumeros.getBotonSeis(), true)
+
+        if(teclaSeis.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena += "6"
+            this.panelNumeros.setPulsado(6)
+        }
+
+        var teclaSiete = raycasterPanel.intersectObject(this.panelNumeros.getBotonSiete(), true)
+
+        if(teclaSiete.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena += "7"
+            this.panelNumeros.setPulsado(7)
+        }
+
+        var teclaOcho = raycasterPanel.intersectObject(this.panelNumeros.getBotonOcho(), true)
+
+        if(teclaOcho.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena += "8"
+            this.panelNumeros.setPulsado(8)
+        }
+
+        var teclaNueve = raycasterPanel.intersectObject(this.panelNumeros.getBotonNueve(), true)
+
+        if(teclaNueve.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
+            this.contrasena += "9"
+            this.panelNumeros.setPulsado(9)
+        }
+    }
+
     switchLights(boton){
         switch (boton) {
             case 1:
@@ -623,16 +725,10 @@ class MyScene extends THREE.Scene {
                 this.avanzar_atras = true
                 break;
             case "C":
-                switch (this.camaraActual) {
-                    case "personal":
-                        this.camaraActual = "panel"
-                        break
-                    case "panel":
-                        this.camaraActual = "personal"
-                        break
-                    default:
-                        break
-                }
+                this.camaraActual = "personal"
+                break;
+            case "V":
+                this.camaraActual = "panel"
                 break;
             default:
                 break;
@@ -742,49 +838,44 @@ class MyScene extends THREE.Scene {
 
         var pomoPuerta = raycaster.intersectObject(this.pomo, true)
 
-        if(pomoPuerta.length > 0 && this.colorLamparaPuerta == "verde"){
+        if(pomoPuerta.length > 0 && this.colorLamparaPuerta == "verde"  && this.camaraActual == "personal"){
             this.rotationPuertaExterna = true
         }
 
         var documentoNumeros = raycaster.intersectObject(this.documento, true)
 
-        if(documentoNumeros.length > 0){
-            window.alert("- Hay escrito un número:\n\n347")
+        if(documentoNumeros.length > 0 && this.camaraActual == "personal"){
+            window.alert("- Hay escrito un número:\n\n3476")
+        }
+
+        for(var i=0; i<this.panelNumeros.getPanelLength(); i++){
+            var panel = raycaster.intersectObject(this.panelNumeros.getPanel(i), true)
+
+            if(panel.length > 0){
+                this.camaraActual = "panel"
+            }
         }
 
         var botonPuzle1 = raycaster.intersectObject(this.boton1, true)
         var botonPuzle2 = raycaster.intersectObject(this.boton2, true)
         var botonPuzle3 = raycaster.intersectObject(this.boton3, true)
 
-        if(botonPuzle1.length > 0){
+        if(botonPuzle1.length > 0 && this.camaraActual == "personal"){
             this.switchLights(1)
             this.boton1.position.x = 99.9
         }
 
-        if(botonPuzle2.length > 0){
+        if(botonPuzle2.length > 0 && this.camaraActual == "personal"){
             this.switchLights(2)
             this.boton2.position.x = 99.9
         }
 
-        if(botonPuzle3.length > 0){
+        if(botonPuzle3.length > 0 && this.camaraActual == "personal"){
             this.switchLights(3)
             this.boton3.position.x = 99.9
         }
 
-        var raycasterPanel = new THREE.Raycaster()
-        raycasterPanel.setFromCamera(this.mouse, this.cameraPanel)
-
-        var teclaOK = raycasterPanel.intersectObject(this.panelNumeros.getBotonVerde(), true)
-
-        if(teclaOK.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
-            this.panelResuelto = true
-        }
-
-        var teclaSalir = raycasterPanel.intersectObject(this.panelNumeros.getBotonSalir(), true)
-
-        if(teclaSalir.length > 0 && this.camaraActual == "panel" && this.panelNumeros.isDesbloqueado()){
-            this.camaraActual = "personal"
-        }
+        this.interaccionPanel()
 
         this.mouseDown = true
     }
@@ -794,6 +885,7 @@ class MyScene extends THREE.Scene {
         this.boton1.position.x = 99.7
         this.boton2.position.x = 99.7
         this.boton3.position.x = 99.7
+        this.panelNumeros.setNoPulsado()
     }
     
     testColision(donde_estoy, donde_miro){
@@ -834,6 +926,7 @@ class MyScene extends THREE.Scene {
                     this.colorLamparaPuerta = "verde"
                     this.lamparaPuerta.setColor(0x00FF00)
                     this.puertaDesbloqueadaExterna = true
+                    this.camaraActual = "personal"
                 }
             }
             else{
